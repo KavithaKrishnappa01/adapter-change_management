@@ -1,3 +1,4 @@
+  
 // Import built-in Node.js package path.
 const path = require('path');
 
@@ -117,7 +118,7 @@ healthcheck(callback) {
       * healthcheck(), execute it passing the error seen as an argument
       * for the callback's errorMessage parameter.
       */
-     // log.error(`Error from ${this.id}  : ${error}`);
+      log.error(`Error from ${this.id}  : ${error}`);
       this.emitOffline();
         errorMessage = error;
    } else {
@@ -131,10 +132,9 @@ healthcheck(callback) {
       * parameter as an argument for the callback function's
       * responseData parameter.
       */
-    //  log.debug(result);
+      log.debug(result);
       this.emitOnline();
         responseData = result;
-      
    }
    if(callback){
        return callback(responseData,errorMessage);
@@ -151,7 +151,7 @@ healthcheck(callback) {
    */
   emitOffline() {
     this.emitStatus('OFFLINE');
-  //  log.warn('ServiceNow: Instance is unavailable.');
+    log.warn('ServiceNow: Instance is unavailable.');
   }
 
   /**
@@ -163,7 +163,7 @@ healthcheck(callback) {
    */
   emitOnline() {
     this.emitStatus('ONLINE');
-   // log.info('ServiceNow: Instance is available.');
+    log.info('ServiceNow: Instance is available.');
   }
 
   /**
@@ -195,34 +195,7 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * get() takes a callback function.
      */
-     this.connector.get((data,error)=>{
-
-         let callbackResult = null;
-         let callbackError = null;
-
-         if(error){
-             callbackError=error.body;
-         }
-         if(data && data.body){
-             let newElement = [];
-             let recordSet = JSON.parse(data.body).result;
-             recordSet.forEach((value,index)=>{
-                 newElement.push({
-                    change_ticket_number:value.number,
-                     active:value.active,
-                     priority:value.priority,
-                     description:value.description,
-                     work_start:value.work_start,
-                     work_end:value.work_end,
-                     change_ticket_key:value.sys_id
-                 })
-             })
-             callbackResult = newElement;
-         }
-
-         callback(callbackResult, callbackError)
-
-     });
+     this.connector.get((data,error)=>callback(data,error));
   }
 
   /**
@@ -241,47 +214,8 @@ healthcheck(callback) {
      * Note how the object was instantiated in the constructor().
      * post() takes a callback function.
      */
-       this.connector.post((results, error) => {
-            let callBackResult = null;
-            let callBackResultError = null;
-            if(error){
-                callBackResultError = error.body;
-            }
-
-            if(results && results.body){
-                let recordSet = JSON.parse(results.body).result;
-                let newElement = {
-                        change_ticket_number:recordSet.number,
-                        active:recordSet.active,
-                        priority:recordSet.priority,
-                        description:recordSet.description,
-                        work_start:recordSet.work_start,
-                        work_end:recordSet.work_end,
-                        change_ticket_key:recordSet.sys_id
-                    }
-                
-                callBackResult = newElement;
-            }
-            
-            callback(callBackResult, callBackResultError)
-        });
+     this.connector.post((data,error)=>callback(data,error));
   }
 }
 
 module.exports = ServiceNowAdapter;
-
-var j = new module.exports('test',{
-  "url": "https://dev22908.service-now.com/",
-  "auth": {
-    "username": "admin",
-    "password": "colEVVuy7L6M"
-  },
-  "serviceNowTable": "change_request"
-});
-
-j.getRecord((results, error) =>{
-    
-    results?console.log('result Set : ', results):'';
-    error?console.log('error : ', error):'';
-
-});
